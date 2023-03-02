@@ -44,15 +44,14 @@ matplotlib==3.7.0
 matplotlib-inline==0.1.6
 mdurl==0.1.2
 mmcv-full==1.7.1
-# Editable Git install with no remote (mmdet==2.28.1)
--e /scratch/dohyeon/BRODY/src/mmdetection
+-e git+https://github.com/dohyeonYoon/BRODY@14a332a8ed83df3cbf9be0b106bc7e346d7a5cb0#egg=mmdet&subdirectory=src/mmdetection
 mmengine==0.6.0
 model-index==0.1.11
 natsort==8.3.0
 nbformat==5.5.0
 nest-asyncio==1.5.6
 networkx==3.0
-numpy==1.24.2
+numpy==1.22.3
 open3d==0.16.0
 opencv-python==4.7.0.72
 openmim==0.3.6
