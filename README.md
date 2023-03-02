@@ -1,5 +1,4 @@
-# BRODY
-## Broiler + Handy = BRODY
+# Broiler + Handy = BRODY
 
 This is Broiler Weight Estimation Program which is based on [open-mmlab/mmdetection](https://github.com/open-mmlab/mmdetection).
 This program receives RGB data and depth data as input and outputs the average weight of broilers detected in the video.
@@ -16,6 +15,7 @@ This program receives RGB data and depth data as input and outputs the average w
 Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a
 **Python>=3.8.0** environment, including
 [**PyTorch>=1.10.0**](https://pytorch.org/get-started/locally/).
+(tested environment cuda 11.3, cudnn 8.2.1 for cuda 11.x)
 
 ```bash
 git clone https://github.com/dohyeonYoon/BRODY  # clone
@@ -25,20 +25,11 @@ pip install -r requirements.txt  # install
 
 ## :rocket: Getting started
 
-### You can inference with sample RGB,PGM file in demo folder.
-
+### You can inference with your own custom RGB, PGM file in /BRODY/src/input/rgb, /BRODY/src/input/depth folder.
 ```bash
 cd src
 
-python BRODY.py
-
-```
-
-### You can inference with your own custom RGB, PGM file in /BRODY/src/input/RGB, /BRODY/src/input/DEPTH folder.
-```bash
-cd src
-
-python BRODY.py
+python pyBRODY.py
 
 ```
 
