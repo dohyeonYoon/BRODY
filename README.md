@@ -1,20 +1,21 @@
 # Broiler + Handy = BRODY
 
-This is Broiler Weight Estimation Program which is based on [open-mmlab/mmdetection](https://github.com/open-mmlab/mmdetection).
+This is Broiler Weight Prediction Program which is based on 3D Computer Vision.
 This program receives RGB data and depth data as input and outputs the average weight of broilers detected in the video.
 
 ## :heavy_check_mark: Tested
 
-| Python |   Windows   |   Mac   |   Linux  |
-| :----: | :---------: | :-----: | :------: |
-|  3.8  | Proceeding | Proceeding |  Ubuntu 18.04 |
+| Python | pytorch |  Windows   |   Mac   |   Linux  |
+| :----: | :-----: | :--------: | :-----: | :------: |
+| 3.8.0+ | 1.10.0+ | X | X |  Ubuntu 18.04 |
 
 
 ## :arrow_down: Installation
 
-Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a
+Clone repo and install [requirements.txt](https://github.com/dohyeonYoon/BRODY/blob/main/requirements.txt) in a
 **Python>=3.8.0** environment, including
 [**PyTorch>=1.10.0**](https://pytorch.org/get-started/locally/).
+
 (tested environment cuda 11.3, cudnn 8.2.1 for cuda 11.x)
 
 ```bash
