@@ -9,8 +9,8 @@ import joblib
 import cv2
 from math import sqrt
 
-def Convert_2D_to_3D_area(img_name, depthmap_name, contour_list, centroid_list):
-    """depth map(.pgm) file을 불러와서 개별 개체의 contour point들의 z값을 무게중심점의 z값으로 대체한 뒤, 3차원 월드좌표로 변환해주는 함수.
+def Convert_2D_to_3D(img_name, depthmap_name, contour_list, centroid_list):
+    """2차원 픽셀좌표계를 3차원 월드좌표계로 변환해주는 함수.
 
     Args:
         img_name: RGB(.png) 파일 디렉토리 경로
@@ -93,7 +93,7 @@ def Convert_2D_to_3D_area(img_name, depthmap_name, contour_list, centroid_list):
     return z_c_list, array_3d, contour_list_3d
 
 def Calculate_major_minor_axis(extream_point_list, array_3d):
-    """개별 인스턴스의 극점의 좌표를 받아와서 major, minor axis 길이 계산해주는 함수.
+    """개별 개체의 장축,단축 길이 계산해주는 함수.
 
     Args:
         extream_point_list: 모든 개체의 상하좌우 극점이 저장된 리스트

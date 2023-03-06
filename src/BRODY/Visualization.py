@@ -3,11 +3,16 @@ BRODY v0.1 - Visualization module
 
 '''
 
+# from mmdet.apis import init_detector
 from csv import writer
 from datetime import datetime
+from natsort import natsorted
+from BRODY.Sub_module import init_detector, show_result
+import os 
+import cv2
 
 def Calculate_day(rgb_file_name, arrival_date):
-    """현재날짜 육계의 일령 계산해주는 함수.
+    """촬영당시 육계의 일령 계산해주는 함수.
 
     Args:
         rgb_file_name: 이미지 파일 경로
@@ -35,16 +40,14 @@ def Calculate_day(rgb_file_name, arrival_date):
 def Visualize_weight(input_path,
                     output_path,
                     results, 
-                    predict_weight_list, 
-                    exclude_index_list, 
-                    predict_average_weight, 
+                    weight_list, 
+                    exclude_depth_err_index_list, 
+                    average_weight, 
                     days,
-                    num_chicken,
                     average_area, 
-                    score_threshold,
                     area_list,
                     rgb_file_name,):
-    """각 개체마다 id number, 예측체중 시각화해주는 함수.
+    """이미지 내의 각 개체마다 id, 체중 시각화해주는 함수.
 
     Args:
         input_path: 입력 이미지를 불러오는 디렉토리 경로.
@@ -59,19 +62,17 @@ def Visualize_weight(input_path,
     """
     
     # config 파일을 설정하고, 학습한 checkpoint file 불러오기.
-    # config_file = '/scratch/dohyeon/mmdetection/custom_config/num_dataset_15.py' # Mask-RCNN-Dataset_15
-    # checkpoint_file = '/scratch/dohyeon/mmdetection/weights/mask_rcnn_r101/num_dataset_15/epoch_36.pth' # Mask-RCNN-Dataset_15
+    # config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_15.py' # Mask-RCNN-Dataset_15
+    # checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_15/epoch_36.pth' # Mask-RCNN-Dataset_15
     config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_30.py' # Mask-RCNN-Dataset_30
     checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_30/epoch_36.pth' # Mask-RCNN-Dataset_30
-    # config_file = '/scratch/dohyeon/mmdetection/custom_config/num_dataset_68.py' # Mask-RCNN-Dataset_68
-    # checkpoint_file = '/scratch/dohyeon/mmdetection/weights/mask_rcnn_r101/num_dataset_68/epoch_35.pth' # Mask-RCNN-Dataset_68
-    # config_file = '/scratch/dohyeon/mmdetection/custom_config/num_dataset_87.py' # Mask-RCNN-Dataset_87
-    # checkpoint_file = '/scratch/dohyeon/mmdetection/weights/mask_rcnn_r101/num_dataset_87/epoch_35.pth' # Mask-RCNN-Dataset_87
+    # config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_68.py' # Mask-RCNN-Dataset_68
+    # checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_68/epoch_35.pth' # Mask-RCNN-Dataset_68
+    # config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_87.py' # Mask-RCNN-Dataset_87
+    # checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_87/epoch_35.pth' # Mask-RCNN-Dataset_87
 
     # config 파일과 checkpoint를 기반으로 Detector 모델을 생성.
     model = init_detector(config_file, checkpoint_file, device='cuda:0')
-    
-    print("이미지에 segmentation result를 덧씌우는 중입니다...")
 
     # 경로선언.
     path_dir = input_path
@@ -86,8 +87,7 @@ def Visualize_weight(input_path,
         # 추론결과 디렉토리에 저장(confidenece score 0.7이상의 instance만 이미지에 그릴 것).
         model.show_result(img_arr,
                         results,
-                        predict_weight_list,
-                        score_thr=score_threshold,
+                        score_thr=0.7,
                         bbox_color=(0,0,0),
                         thickness=0.01,
                         font_size=8,
@@ -97,7 +97,7 @@ def Visualize_weight(input_path,
 
 
 def Save_to_csv(days, predict_average_weight):
-    """날짜, 탐지된 육계 개체수(마리), 실제면적, 예측체중을 csv file에 저장해주는 함수.
+    """각 개체의 일령, 면적, 체중을 csv file에 저장해주는 함수.
 
     Args:
         date: 영상이 촬영된 날짜.
@@ -108,13 +108,14 @@ def Save_to_csv(days, predict_average_weight):
     Returns:
         None
     """
-    # 촬영날짜, 일령, 면적, 체중 4가지를 csv file에 저장.
+    # 각 개체의 일령, 면적, 체중 3가지를 csv file에 저장.
     rows = [days, predict_average_weight]
     with open(f'/scratch/dohyeon/mmdetection/output/avg_weight_result.csv','a', newline='') as f_object:
         # using csv.writer method from CSV package
         writer_object = writer(f_object)
         writer_object.writerow(rows)
         f_object.close()
+
     return
 
 def Empty_dir(file_path):

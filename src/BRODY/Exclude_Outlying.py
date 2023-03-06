@@ -6,7 +6,7 @@ BRODY v0.1 - Exclude_outlying module
 import cv2
 
 def Exclude_boundary_instance(img_name, extream_point_list, filtered_index):
-    """ 이미지 경계에 위치하여 잘린 개체를 배제하는 함수.  
+    """ 이미지 경계에 위치하여 잘린 개체를 배제해주는 함수.  
     Args:
         img_name: RGB 파일 디렉토리 경로 
         extream_point_list: 모든 개체의 상하좌우 극점의 2차원 좌표가 저장된 리스트
@@ -64,7 +64,7 @@ def Exclude_boundary_instance(img_name, extream_point_list, filtered_index):
 
 
 def Exclude_depth_error(z_c_list, exclude_boundary_index_list):
-    """ 깊이 이상치를 갖는 개체를 배제하는 함수.  
+    """ 깊이 이상치를 갖는 개체 배제해주는 함수.  
     Args:
         z_c_list: 모든 개체의 무게중심점에 median filter가 적용된 z값을 저장한 리스트
         exclude_boundary_index_list: 이미지 경계에 위치한 개체를 제외한 나머지 개체 인덱스가 저장된 리스트
@@ -82,24 +82,33 @@ def Exclude_depth_error(z_c_list, exclude_boundary_index_list):
                 exclude_boundary_index_list.remove(index) # 깊이 이상치 제거
                 print(f"-----{index}번 개체가 배제되었습니다. -----")
             else: 
-                print(f"-----{index}번 개체는 이미 배제되었습니다. -----")
+                pass
             
         else:
             pass
     
     exclude_depth_err_index_list = exclude_boundary_index_list
-
+    print(exclude_depth_err_index_list)
     return exclude_depth_err_index_list
 
 
-def Find_straight_line(contour_list):
+def Find_straight_line(contour_list, exclude_depth_err_index_list):
+    """ segmented mask가 직선을 갖는 개체의 인덱스 찾아주는 함수.  
+    Args:
+        contour_list: 모든 개체의 contour점 픽셀좌표가 저장된 리스트
 
-    # 개별 인스턴스가 길이 35pixel 이상의 직선을 가지고 있는지 확인.
-    for contour in contour_list:
-        for j in range(len(contour[0])-1):
-            # Calculate the distance between two adjacent contour points
-            dist = cv2.norm(contour[0][j], contour[0][j+1])
+    Returns:
+        exclude_depth_err_index_list: 깊이 이상치 개체를 제외한 나머지 개체 인덱스가 저장된 리스트
+    """
+
+    straight_line_index_list = []
+    for i in exclude_depth_err_index_list:
+        for j in range(len(contour_list[i][0]-1)):
+            dist = cv2.norm(contour_list[i][0][j], contour_list[i][0][j+1])
             if dist >= 35:
-                print(f"There is a straight line of 35 pixels or more in the contour in 번째 instace.")
-                break
-    return 
+                print(f"{i}번째 인스턴스에 35픽셀 이상의 직선이 있습니다.")
+                straight_line_index_list.append(i)
+            else:
+                pass
+
+    return straight_line_index_list
