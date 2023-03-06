@@ -31,35 +31,31 @@ def main():
         contour_list, centroid_list, extream_point_list, mask_list, filtered_index = Segmentation.Get_contour(results, threshold_index)
 
         # Conversion
-        z_c_list, array_3d, contour_list_3d = Conversion.Convert_2D_to_3D_area(img_name, depthmap_name, contour_list, centroid_list)
+        z_c_list, array_3d, contour_list_3d = Conversion.Convert_2D_to_3D(img_name, depthmap_name, contour_list, centroid_list)
         major_axis_list, minor_axis_list = Conversion.Calculate_major_minor_axis(extream_point_list, array_3d)
 
         # eo
-        exclude_boundary_index_list = eo.Exclude_boundary_instance(img_name, extream_point_list, filtered_index, z_c_list)
-        exclude_depth_err_index_list = eo.Exclude_depth_error(exclude_boundary_index_list, z_c_list)
+        exclude_boundary_index_list = eo.Exclude_boundary_instance(img_name, extream_point_list, filtered_index)
+        exclude_depth_err_index_list = eo.Exclude_depth_error(z_c_list, exclude_boundary_index_list)
         # eo.Find_straight_line(contour_list)
 
-        # # Prediction  
-        # area_list, average_area, perimeter_list, average_perimeter = Prediction.Calculate_2d_area(contour_list_3d, exclude_depth_err_index_list)
-        # predict_weight_list, predict_average_weight, num_chicken = Prediction.Calculate_weight(exclude_depth_err_index_list, days, area_list, perimeter_list, major_axis_list)
+        # Prediction  
+        area_list, average_area, perimeter_list, average_perimeter = Prediction.Calculate_2d_area(contour_list_3d, exclude_depth_err_index_list)
+        weight_list, average_weight = Prediction.Calculate_weight(area_list, perimeter_list, major_axis_list, minor_axis_list)
         
-        # # Visualization
-        # days = Visualization.Calculate_day(rgb_file_name, arrival_date)
-        # Visualization.Visualize_weight(origin_img_path, 
-        #         segmented_img_path,
-        #         results,
-        #         predict_weight_list, 
-        #         exclude_depth_err_index_list, 
-        #         predict_average_weight, 
-        #         days,
-        #         num_chicken,
-        #         average_area, 
-        #         threshold_value,
-        #         area_list,
-        #         rgb_file_name,)
-        # Visualization.Save_to_csv(days, predict_average_weight)
-        # Visualization.Empty_dir(origin_img_path)
-        # Visualization.Empty_dir(origin_depthmap_path)
+        # Visualization
+        days = Visualization.Calculate_day(rgb_file_name, arrival_date)
+        Visualization.Visualize_weight(origin_img_path, 
+                segmented_img_path,
+                results,
+                weight_list, 
+                exclude_depth_err_index_list, 
+                average_weight, 
+                days,
+                average_area, 
+                area_list,
+                rgb_file_name)
+        Visualization.Save_to_csv(days, average_weight)
             
 if __name__ == "__main__":
     main()
