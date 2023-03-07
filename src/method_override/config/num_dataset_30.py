@@ -10,20 +10,20 @@ data = dict(
         type=dataset_type,
         # explicitly add your class names to the field `classes`
         classes=classes,
-        ann_file='/scratch/dohyeon/mmdetection/dataset/dataset_30/annotations/train.json',
-        img_prefix='/scratch/dohyeon/mmdetection/dataset/dataset_30/train'),
+        ann_file='/scratch/dohyeon/BRODY/src/method_override/dataset/dataset_30/annotations/train.json',
+        img_prefix='/scratch/dohyeon/BRODY/src/method_override/dataset/dataset_30/train'),
     val=dict(
         type=dataset_type,
         # explicitly add your class names to the field `classes`
         classes=classes,
-        ann_file='/scratch/dohyeon/mmdetection/dataset/dataset_30/annotations/val.json',
-        img_prefix='/scratch/dohyeon/mmdetection/dataset/dataset_30/val'),
+        ann_file='/scratch/dohyeon/BRODY/src/method_override/dataset/dataset_30/annotations/val.json',
+        img_prefix='/scratch/dohyeon/BRODY/src/method_override/dataset/dataset_30/val'),
     test=dict(
         type=dataset_type,
         # explicitly add your class names to the field `classes`
         classes=classes,
-        ann_file='/scratch/dohyeon/mmdetection/dataset/dataset_30/annotations/val.json',
-        img_prefix='/scratch/dohyeon/mmdetection/dataset/dataset_30/val'))
+        ann_file='/scratch/dohyeon/BRODY/src/method_override/dataset/dataset_30/annotations/val.json',
+        img_prefix='/scratch/dohyeon/BRODY/src/method_override/dataset/dataset_30/val'))
 
 # 2. model settings.
 model = dict(

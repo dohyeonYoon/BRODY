@@ -20,16 +20,15 @@ def Segment_chicken(img_name):
         results: Detector 추론 결과 얻어진 bbox, mask 정보
         filtered_index: confidence score가 threshold값 보다 큰 인스턴스의 index 정보
     """
-
     # config 파일을 설정하고, 학습한 checkpoint file 불러오기.
     # config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_15.py' # Mask-RCNN-Dataset_15
     # checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_15/epoch_36.pth' # Mask-RCNN-Dataset_15
-    config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_30.py' # Mask-RCNN-Dataset_30
-    checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_30/epoch_36.pth' # Mask-RCNN-Dataset_30
+    # config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_30.py' # Mask-RCNN-Dataset_30
+    # checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_30/epoch_36.pth' # Mask-RCNN-Dataset_30
     # config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_68.py' # Mask-RCNN-Dataset_68
     # checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_68/epoch_35.pth' # Mask-RCNN-Dataset_68
-    # config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_87.py' # Mask-RCNN-Dataset_87
-    # checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_87/epoch_35.pth' # Mask-RCNN-Dataset_87
+    config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_87.py' # Mask-RCNN-Dataset_87
+    checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_87/epoch_35.pth' # Mask-RCNN-Dataset_87
 
     # config 파일과 checkpoint를 기반으로 Detector 모델을 생성.
     model = init_detector(config_file, checkpoint_file, device='cuda:0')
@@ -60,7 +59,6 @@ def Get_contour(results, threshold_index):
         mask_list: instace를 이루는 모든 픽셀좌표가 저장된 리스트
         filtered_index: 예외처리된 모든 개체의 인덱스가 저장된 리스트
     """
-    
     # 개별 인스턴스의 contour 픽셀좌표가 저장될 list선언.
     contour_list = []
     centroid_list = []
@@ -79,7 +77,7 @@ def Get_contour(results, threshold_index):
         contour_list.append(contour) # contour_list에 contour 좌표 append
         cnt = contour[0]
         
-        # contour의 극점 추출(상하좌우 극점)
+        # contour의 극점 추출(상하좌우)
         topmost = tuple(cnt[cnt[:,:,1].argmin()][0])
         bottommost = tuple(cnt[cnt[:,:,1].argmax()][0])
         leftmost = tuple(cnt[cnt[:,:,0].argmin()][0])

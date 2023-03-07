@@ -17,13 +17,13 @@ origin_img_path = '/scratch/dohyeon/BRODY/src/input/rgb' # 입력 RGB file이 �
 origin_depthmap_path = '/scratch/dohyeon/BRODY/src/input/depth' # 입력 Depthmap file이 저장된 경로
 segmented_img_path = '/scratch/dohyeon/BRODY/src/output/save_point1/' # 출력결과를 저장할 경로
 arrival_date = [2022, 4, 26, 00]
-rgb_file_list = natsorted(os.listdir(origin_img_path))
+img_file_list = natsorted(os.listdir(origin_img_path))
 depthmap_file_list = natsorted(os.listdir(origin_depthmap_path))
 
 def main():
-    for i in range(len(rgb_file_list)):
-        rgb_file_name = rgb_file_list[i]
-        img_name = origin_img_path + "/" + rgb_file_list[i]
+    for i in range(len(img_file_list)):
+        rgb_file_name = img_file_list[i]
+        img_name = origin_img_path + "/" + img_file_list[i]
         depthmap_name = origin_depthmap_path + "/" + depthmap_file_list[i]
 
         # Segmentation

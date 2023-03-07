@@ -20,7 +20,6 @@ def Calculate_2d_area(contour_list_3d, exclude_depth_err_index_list):
         perimeter_list: 모든 개체의 둘레가 저장된 리스트 
         average_perimeter: 모든 개체의 평균둘레
     """
-
     # 면적 및 둘레 계산
     area_list = []
     perimeter_list = []
@@ -33,6 +32,7 @@ def Calculate_2d_area(contour_list_3d, exclude_depth_err_index_list):
     
     # 평균면적 및 평균둘레 계산
     average_area = round(sum(area_list,0.0)/ len(area_list),2)
+    print(average_area)
     average_perimeter = round(sum(perimeter_list,0.0)/ len(perimeter_list),2)
 
     return area_list, average_area, perimeter_list, average_perimeter
@@ -50,7 +50,6 @@ def Calculate_weight(area_list, perimeter_list, major_axis_list, minor_axis_list
     Returns:
         predict_weight_list: 각 instance의 예측체중이 저장된 list.
     """
-
     weight_list = []
     model = joblib.load('/scratch/dohyeon/BRODY/src/method_override/linear_model/Huber.pkl')# 기존 면적-체중 선형회귀모델
     # model1 = joblib.load('/scratch/dohyeon/BRODY/src/method_override/linear_model/model1.pkl') # 면적-체중 다중선형회귀모델
@@ -95,7 +94,7 @@ def Calculate_weight(area_list, perimeter_list, major_axis_list, minor_axis_list
 
 
     # 예측 평균체중, 마리수 변수에 저장.
-    average_weight = int((sum(weight_list,0.0)/ len(weight_list)))
+    average_weight = round((sum(weight_list,0.0)/ len(weight_list))[0], 2)
     print("추론된 육계군집의 예측 평균체중은 ",average_weight,"g 입니다.")
 
     return weight_list, average_weight

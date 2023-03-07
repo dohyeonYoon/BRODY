@@ -78,7 +78,7 @@ def Convert_2D_to_3D(img_name, depthmap_name, contour_list, centroid_list):
             X= ((v-cx) * float(Z)) / fx # 해당 픽셀의 3차원상의 실제좌표 x
             array_3d.append([X,Y,Z])
     array_3d = np.array(array_3d)
-    array_3d = array_3d.reshape(720,1280,3)
+    array_3d = array_3d.reshape(height,width,3)
 
     # 각 instance의 contour points 3차원 좌표 list에 저장.
     contour_list_3d = []
@@ -113,7 +113,7 @@ def Calculate_major_minor_axis(extream_point_list, array_3d):
         lm_2d = list(extream_point_list[i][2]) # 좌 2D
         rm_2d = list(extream_point_list[i][3]) # 우 2D
 
-        # 좌우상하 극점의 3D 좌표
+        # 상하좌우 극점의 3D 좌표
         tm_3d = list(array_3d[tm_2d[1], tm_2d[0]]) # 상 3D
         bm_3d = list(array_3d[bm_2d[1], bm_2d[0]]) # 하 3D
         lm_3d = list(array_3d[lm_2d[1], lm_2d[0]]) # 좌 3D
@@ -131,55 +131,55 @@ def Calculate_major_minor_axis(extream_point_list, array_3d):
 
     return major_axis_list, minor_axis_list
 
-# def Calculate_perpendicular_point(array_3d):
-#     w,h = array_3d.shape[0], array_3d.shape[1]
-#     total = w*h 
-#     array3 = array_3d.reshape(total,3)
+def Calculate_perpendicular_point(array_3d):
+    w,h = array_3d.shape[0], array_3d.shape[1]
+    total = w*h 
+    array3 = array_3d.reshape(total,3)
 
-#     # 포인트 클라우드 정의
-#     pcd_plane = o3d.geometry.PointCloud()
-#     pcd_plane.points = o3d.utility.Vector3dVector(array3)
-#     pcd_plane.normals = o3d.utility.Vector3dVector(array3)
+    # 포인트 클라우드 정의
+    pcd_plane = o3d.geometry.PointCloud()
+    pcd_plane.points = o3d.utility.Vector3dVector(array3)
+    pcd_plane.normals = o3d.utility.Vector3dVector(array3)
 
-#     # 지면 법선벡터 계산 및 flip 
-#     pcd_plane.estimate_normals()
-#     pcd_plane.orient_normals_towards_camera_location(pcd_plane.get_center())
-#     pcd_plane.normals = o3d.utility.Vector3dVector( - np.asarray(pcd_plane.normals))
+    # 지면 법선벡터 계산 및 flip 
+    pcd_plane.estimate_normals()
+    pcd_plane.orient_normals_towards_camera_location(pcd_plane.get_center())
+    pcd_plane.normals = o3d.utility.Vector3dVector( - np.asarray(pcd_plane.normals))
 
-#     # 지면 평면 계산 및 시각화
-#     plane_model, inliers = pcd_plane.segment_plane(distance_threshold=0.1,
-#                                         ransac_n=3,
-#                                         num_iterations=1000)
-#     [a, b, c, camera_height] = plane_model
-#     # print(f"Plane equation: {a:.2f}x + {b:.2f}y + {c:.2f}z + {camera_height:.2f} = 0")  
-#     camera_height = - camera_height
+    # 지면 평면 계산 및 시각화
+    plane_model, inliers = pcd_plane.segment_plane(distance_threshold=0.1,
+                                        ransac_n=3,
+                                        num_iterations=1000)
+    [a, b, c, camera_height] = plane_model
+    print(f"Plane equation: {a:.2f}x + {b:.2f}y + {c:.2f}z + {camera_height:.2f} = 0")  
+    camera_height = - camera_height
 
-#     perpendicular_point = (0,0,camera_height)
+    perpendicular_point = (0,0,camera_height)
 
-#     return perpendicular_point
+    return perpendicular_point
 
-# def Calculate_distance(array_3d, centroid_list, perpendicular_point, exclude_index_list):
-#     """각 instance의 무게중심점의 3차원 좌표를 추출하고, 수선의발에서부터 각 instance까지 거리 구하는 함수.
+def Calculate_distance(array_3d, centroid_list, perpendicular_point, exclude_index_list):
+    """각 instance의 무게중심점의 3차원 좌표를 추출하고, 수선의발에서부터 각 instance까지 거리 구하는 함수.
 
-#     """
+    """
 
-#     # 각 instance의 무게중심점 3차원 좌표 list에 저장.
-#     center_of_mass_list = []
-#     exclude_centroid_list = []
+    # 각 instance의 무게중심점 3차원 좌표 list에 저장.
+    center_of_mass_list = []
+    exclude_centroid_list = []
 
-#     for i in exclude_index_list:
-#         exclude_centroid_list.append(centroid_list[i])
+    for i in exclude_index_list:
+        exclude_centroid_list.append(centroid_list[i])
 
-#     for i in range(len(exclude_centroid_list)): # 육계 개체 수
-#         point_x, point_y = array_3d[exclude_centroid_list[i][1], exclude_centroid_list[i][0]][0],array_3d[exclude_centroid_list[i][1], exclude_centroid_list[i][0]][1]  # height, width 순서 
-#         center_of_mass_list.append([point_x,point_y])
+    for i in range(len(exclude_centroid_list)): # 육계 개체 수
+        point_x, point_y = array_3d[exclude_centroid_list[i][1], exclude_centroid_list[i][0]][0],array_3d[exclude_centroid_list[i][1], exclude_centroid_list[i][0]][1]  # height, width 순서 
+        center_of_mass_list.append([point_x,point_y])
     
-#     # 유클리디안 거리 계산
-#     perpendicular_point = [0,0]
-#     distance_list = []
+    # 유클리디안 거리 계산
+    perpendicular_point = [0,0]
+    distance_list = []
 
-#     for i in center_of_mass_list:
-#         distance = sqrt((perpendicular_point[0]-i[0])**2 +(perpendicular_point[1]-i[1])**2)
-#         distance_list.append(distance)
+    for i in center_of_mass_list:
+        distance = sqrt((perpendicular_point[0]-i[0])**2 +(perpendicular_point[1]-i[1])**2)
+        distance_list.append(distance)
     
-#     return distance_list
+    return distance_list

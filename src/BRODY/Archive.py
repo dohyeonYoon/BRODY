@@ -34,50 +34,20 @@ def Convert_2D_to_3D_surface(pgm_file_path, mask_list):
         list_converted_to_3d: 
     """
 
-    경로 받아오고 file list 구성.
-    path_dir = pgm_file_path
-    file_list= natsorted(os.listdir(path_dir))
-    depthmap_name = path_dir+'/'+file_list[0]
+    # 입력 이미지 사이즈 반환.
+    height, width, channel = cv2.imread(img_name).shape
 
-    pgm file 읽어들일 수 있게 수정.
-    f = open(depthmap_name)
-    data1 = f.readlines() 
-    del data1[0:3] # 헤더부분 삭제
-    depth_list = [] # depth map 정보가 저장될 list
+    # Depth 정보 parsing.
+    depth_list = []
+    with open(depthmap_name, 'r') as f:
+        data = f.readlines()[3:]
+        for i in data:
+            for j in i.split():
+                depth_list.append(int(j))
 
-    # 스페이스바로 나뉜 깊이정보 읽어들일 수 있게 수정
-    for i in range(720): # i번째 행 문자열 split
-        a= data1[i].split()
-        for j in range(1280): # j번째 열 depth_list에 삽입
-            depth_list.append(a[j])
-
-    # depth map을 720x1280 형태로 reshape.
-    array1 = np.array(depth_list)
-    array1 = np.reshape(array1, (720,1280))
-
-# --------------------------------------------------------------------------------------------------------------
-    # depthmap 시각화
-    max_range = 255
-    scaler = MinMaxScaler(feature_range = (0,255)) # feature 범위를 0~1사이로 변환 
-    scaler.fit(array1)
-    depthmap = scaler.transform(array1)
-    
-    cmap = plt.cm.get_cmap("gray", 256)
-    cmap = np.array([cmap(i) for i in range(256)])[:, :3] * 255
-
-    # sparse depthmap인 경우 depth가 있는 곳만 추출합니다.
-    depth_pixel_v_s, depth_pixel_u_s = np.where(depthmap > 0)
-
-    H, W = depthmap.shape
-    color_depthmap = np.zeros((H, W, 3)).astype(np.uint8)
-    for depth_pixel_v, depth_pixel_u in zip(depth_pixel_v_s, depth_pixel_u_s):
-        depth = depthmap[depth_pixel_v, depth_pixel_u]
-        color_index = int(255 * min(depth, max_range) / max_range)
-        color = cmap[color_index, :]
-        cv2.circle(color_depthmap, (depth_pixel_u, depth_pixel_v), 1, color=tuple(color), thickness=-1)
-    plt.imshow(color_depthmap)
-    plt.show()
-# --------------------------------------------------------------------------------------------------------------
+    # depth map을 이미지 형태(height*width)로 reshape.
+    depth_map = np.array(depth_list)
+    depth_map = np.reshape(depth_map, (height,width))
 
     # 카메라 내부 파라미터를 이용한 3차원 월드좌표(실제좌표)로 변환.
     fx = 535.14 # 초점거리 x
@@ -86,47 +56,30 @@ def Convert_2D_to_3D_surface(pgm_file_path, mask_list):
     cy= 361.3215 # 주점 y
     factor = 1.0
 
-    list4 = []
-    list5 = []
+    # array_3d 리스트에 X,Y,Z 좌표 저장
+    array_3d = []
+    for u in range(height):
+        for v in range(width):
+            Z = float(median_array[u,v]) / factor # 해당 픽셀의 3차원상의 실제좌표 z
+            Y= ((u-cy) * float(Z)) / fy # 해당 픽셀의 3차원상의 실제좌표 y
+            X= ((v-cx) * float(Z)) / fx # 해당 픽셀의 3차원상의 실제좌표 x
+            array_3d.append([X,Y,Z])
+    array_3d = np.array(array_3d)
+    array_3d = array_3d.reshape(height,width,3)
 
-    for u in range(720):
-        for v in range(1280):
-            Z = float(array1[u,v]) / factor # 해당 픽셀의 3차원상의 실제좌표 z
-            X= ((u-cx) * float(Z)) / fx # 해당 픽셀의 3차원상의 실제좌표 x
-            Y= ((v-cy) * float(Z)) / fy # 해당 픽셀의 3차원상의 실제좌표 y
-            list4.append(Y)  # 행-열 순서로 변환하면서 y-x-z 순서가 x-y-z 순서임
-            list4.append(X)
-            list4.append(Z)
-
-    # 720x1280개의 각 픽셀마다 (x,y,z) 실제좌표 저장.
-    for i in range(0,len(list4),3):
-        list5.append(list4[i:i+3])
-
-    # array2의 형태를 (720x1280x3)로 reshape
-    array2 = np.array(list5)
-    array2 = array2.reshape(720,1280,3)
-    print(array2)
-
-    # 각 instance의 mask_list 3차원 좌표 list에 저장.
-    list7 = []
-    for i in mask_list: # 
-        list6 = []
+    # 각 instance의 mask points 3차원 좌표 list에 저장.
+    mask_list_3d = []
+    for i in mask_list:
+        point_list0 = []
         for j in range(len(i)): # i번째 육계의 pixel 개수
-            points = array2[i[j][0][1], i[j][0][0]] # 행번호-열번호 순서
-            list6.append(points)
-        list6 = np.array(list6)
-        list7.append(list6)
+            points = array_3d[i[j][0][1], i[j][0][0]] # height, width 순서 
+            point_list0.append(points)
+        mask_list_3d.append(point_list0)
 
-    # 각 instance의 contour points 3차원 좌표 numpy array로 변환.
-    mask_list_3d = np.array(list7, dtype= object)
-    print("mask_list_3d의 개수는?", len(mask_list_3d))
-    f = open("./new_list.txt", "a")
-    for i in list7[0]:
-        f.write(str(list(i)))
-        f.write(",")
-    f.close()
+    # 각 instance mask의 3차원 좌표 numpy array로 변환.
+    mask_list_3d = np.array(mask_list_3d, dtype= object)
 
-    return mask_list_3d, array2
+    return mask_list_3d, array_3d
 
 def Remove_outlier(mask_list_3d, img_name, real_mask_list):
     img= cv2.imread(img_name, cv2.IMREAD_COLOR)
@@ -255,8 +208,6 @@ def Find_boundary_points(projected_mask_list):
     return projected_boundary_points
 
 def Calculate_projected_area(projected_boundary_points):
-    # print(len(projected_boundary_points))
-    # print(projected_boundary_points)
     # shapely Polygon 함수로 면적 계산
     area_list = []
     for i in range(len(projected_boundary_points)):
@@ -455,11 +406,9 @@ def Calculate_area_3d(mask_list_3d, remove_cell_list):
     for i in range(len(mask_list_3d)): # 탐지된 모든 개체를 이루는 3D point mesh 및 법선벡터 생성
         cloud = pv.PolyData(mask_list_3d[i].tolist())
         surf = cloud.delaunay_2d()
-        # print("수정전",surf.area)
-        # surf.remove_cells(remove_cell_list[i])
         edit_surf = surf.remove_cells(remove_cell_list[i])
         edit_surface_area = edit_surf.area
-        # print(edit_surface_area)
+
     return
 
 
@@ -558,5 +507,27 @@ def Visualize_weight(input_path,
     return
 
 
+def Visualize_depthmap(depth_map):
+    # depthmap 시각화
+    max_range = 255
+    scaler = MinMaxScaler(feature_range = (0,255)) # feature 범위를 0~1사이로 변환 
+    scaler.fit(depth_map)
+    depthmap = scaler.transform(depth_map)
+    
+    cmap = plt.cm.get_cmap("gray", 256)
+    cmap = np.array([cmap(i) for i in range(256)])[:, :3] * 255
 
-        
+    # sparse depthmap인 경우 depth가 있는 곳만 추출합니다.
+    depth_pixel_v_s, depth_pixel_u_s = np.where(depthmap > 0)
+
+    H, W = depthmap.shape
+    color_depthmap = np.zeros((H, W, 3)).astype(np.uint8)
+    for depth_pixel_v, depth_pixel_u in zip(depth_pixel_v_s, depth_pixel_u_s):
+        depth = depthmap[depth_pixel_v, depth_pixel_u]
+        color_index = int(255 * min(depth, max_range) / max_range)
+        color = cmap[color_index, :]
+        cv2.circle(color_depthmap, (depth_pixel_u, depth_pixel_v), 1, color=tuple(color), thickness=-1)
+    plt.imshow(color_depthmap)
+    plt.show() 
+    
+    return

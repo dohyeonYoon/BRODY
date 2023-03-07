@@ -15,8 +15,7 @@ def Exclude_boundary_instance(img_name, extream_point_list, filtered_index):
     Returns:
         exclude_boundary_index_list: 경계에서 잘린 개체를 제외한 나머지 개체의 인덱스가 저장된 리스트
     """
-
-    # 입력 이미지 사이즈 반환.
+    # 입력 이미지 사이즈 반환
     img_arr = cv2.imread(img_name)
     height, width, channel = img_arr.shape
 
@@ -88,19 +87,19 @@ def Exclude_depth_error(z_c_list, exclude_boundary_index_list):
             pass
     
     exclude_depth_err_index_list = exclude_boundary_index_list
-    print(exclude_depth_err_index_list)
+
     return exclude_depth_err_index_list
 
 
 def Find_straight_line(contour_list, exclude_depth_err_index_list):
-    """ segmented mask가 직선을 갖는 개체의 인덱스 찾아주는 함수.  
+    """ 기둥에 가려진(segmented mask가 직선을 갖는) 개체의 인덱스 찾아주는 함수.  
     Args:
         contour_list: 모든 개체의 contour점 픽셀좌표가 저장된 리스트
+        exclude_depth_err_index_list: 깊이 이상치 개체를 제외한 나머지 개체 인덱스가 저장된 리스트
 
     Returns:
-        exclude_depth_err_index_list: 깊이 이상치 개체를 제외한 나머지 개체 인덱스가 저장된 리스트
+        straight_line_index_list: 기둥에 가려진(segmentated mask가 직선을 갖는) 개체의 인덱스가 저장된 리스트
     """
-
     straight_line_index_list = []
     for i in exclude_depth_err_index_list:
         for j in range(len(contour_list[i][0]-1)):
@@ -112,3 +111,27 @@ def Find_straight_line(contour_list, exclude_depth_err_index_list):
                 pass
 
     return straight_line_index_list
+
+def Find_pillar(img_name):
+    """ 이미지에서 기둥 영역 찾아주는 함수.  
+    Args:
+        img_name: RGB(.png) 파일 디렉토리 경로
+
+    Returns:
+        pillar: 원본 이미지에서 기둥만 분할된 바이너리 이미지
+    """
+    # HSV color space로 이미지 불러들이기
+    img = cv2.imread(img_name)
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+    # 물체 분할을 위한 HSV 범위 설정
+    lower_range = np.array([10, 5, 22])
+    upper_range = np.array([231, 30, 67])
+
+    # 설정된 HSV 범위에 해당하는 물체 분할
+    mask = cv2.inRange(hsv, lower_range, upper_range)
+
+    # 물체 분할을 위해 원본 이미지에 bitwise_and 적용
+    pillar = cv2.bitwise_and(img, img, mask=mask)
+
+    return pillar

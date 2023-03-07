@@ -7,7 +7,7 @@ BRODY v0.1 - Visualization module
 from csv import writer
 from datetime import datetime
 from natsort import natsorted
-from BRODY.Sub_module import init_detector, show_result
+from mmdet.apis import init_detector
 import os 
 import cv2
 
@@ -60,38 +60,39 @@ def Visualize_weight(input_path,
     Returns:
         None
     """
-    
     # config 파일을 설정하고, 학습한 checkpoint file 불러오기.
     # config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_15.py' # Mask-RCNN-Dataset_15
     # checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_15/epoch_36.pth' # Mask-RCNN-Dataset_15
-    config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_30.py' # Mask-RCNN-Dataset_30
-    checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_30/epoch_36.pth' # Mask-RCNN-Dataset_30
+    # config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_30.py' # Mask-RCNN-Dataset_30
+    # checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_30/epoch_36.pth' # Mask-RCNN-Dataset_30
     # config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_68.py' # Mask-RCNN-Dataset_68
     # checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_68/epoch_35.pth' # Mask-RCNN-Dataset_68
-    # config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_87.py' # Mask-RCNN-Dataset_87
-    # checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_87/epoch_35.pth' # Mask-RCNN-Dataset_87
+    config_file = '/scratch/dohyeon/BRODY/src/method_override/config/num_dataset_87.py' # Mask-RCNN-Dataset_87
+    checkpoint_file = '/scratch/dohyeon/BRODY/src/method_override/weights/mask_rcnn_r101/num_dataset_87/epoch_35.pth' # Mask-RCNN-Dataset_87
 
     # config 파일과 checkpoint를 기반으로 Detector 모델을 생성.
     model = init_detector(config_file, checkpoint_file, device='cuda:0')
-
-    # 경로선언.
-    path_dir = input_path
-    save_dir1 = output_path
-    file_list = natsorted(os.listdir(path_dir))
     
     # 입력 이미지에 추론결과 visualize
-    for i in range(1): 
-        img_name = path_dir + '/' + rgb_file_name
+    for i in range(1):
+        img_name = input_path + '/' + rgb_file_name
         img_arr= cv2.imread(img_name, cv2.IMREAD_COLOR)
 
         # 추론결과 디렉토리에 저장(confidenece score 0.7이상의 instance만 이미지에 그릴 것).
         model.show_result(img_arr,
                         results,
+                        area_list,
+                        weight_list,
+                        exclude_depth_err_index_list,
+                        days,
+                        average_area,
+                        average_weight,
                         score_thr=0.7,
                         bbox_color=(0,0,0),
+                        text_color=(255, 255, 255),
                         thickness=0.01,
-                        font_size=8,
-                        out_file= f'{save_dir1}{rgb_file_name}')
+                        font_size=12,
+                        out_file= f'{output_path}{rgb_file_name}')
 
     return
 

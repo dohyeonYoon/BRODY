@@ -13,6 +13,7 @@ from mmdet.core.evaluation.panoptic_utils import INSTANCE_OFFSET
 from ..mask.structures import bitmap_to_polygon
 from ..utils import mask2ndarray
 from .palette import get_palette, palette_val
+from PIL import Image, ImageDraw, ImageFont
 
 __all__ = [
     'color_val_matplotlib', 'draw_masks', 'draw_bboxes', 'draw_labels',
@@ -78,7 +79,7 @@ def _get_bias_color(base, max_dist=30):
     return np.clip(new_color, 0, 255, new_color)
 
 
-def draw_bboxes(ax, bboxes, color='g', alpha=0.8, thickness=2):
+def draw_bboxes(ax, bboxes, exclude_depth_err_index_list, color='g', alpha=0.8, thickness=2):
     """Draw bounding boxes on the axes.
 
     Args:
@@ -94,7 +95,13 @@ def draw_bboxes(ax, bboxes, color='g', alpha=0.8, thickness=2):
         matplotlib.Axes: The result axes.
     """
     polygons = []
-    for i, bbox in enumerate(bboxes):
+    
+    exclude_bboxes = []
+
+    for i in exclude_depth_err_index_list:
+        exclude_bboxes.append(bboxes[i])
+
+    for i, bbox in enumerate(exclude_bboxes):
         bbox_int = bbox.astype(np.int32)
         poly = [[bbox_int[0], bbox_int[1]], [bbox_int[0], bbox_int[3]],
                 [bbox_int[2], bbox_int[3]], [bbox_int[2], bbox_int[1]]]
@@ -112,6 +119,8 @@ def draw_bboxes(ax, bboxes, color='g', alpha=0.8, thickness=2):
 
 
 def draw_labels(ax,
+                weight_list,
+                exclude_depth_err_index_list,
                 labels,
                 positions,
                 scores=None,
@@ -137,11 +146,25 @@ def draw_labels(ax,
     Returns:
         matplotlib.Axes: The result axes.
     """
-    for i, (pos, label) in enumerate(zip(positions, labels)):
-        label_text = class_names[
-            label] if class_names is not None else f'class {label}'
+
+    # 개체번호
+    id = []
+    for i in exclude_depth_err_index_list:
+        id.append(i)
+
+    exclude_positions = []
+    exclude_labels = []
+    for i in exclude_depth_err_index_list:
+        exclude_positions.append(positions[i])
+        exclude_labels.append(labels[i])
+
+    for i, (pos, label) in enumerate(zip(exclude_positions, exclude_labels)): # i는 인덱스, pos = bboxes result값, lables= label result값
+        # label_text = class_names[label] if class_names is not None else f'class {label}'
+        label_text = f"{id[i]}" if class_names is not None else f'class {label}'
         if scores is not None:
-            label_text += f'|{scores[i]:.02f}'
+            # label_text += f'|{scores[i]:.02f}'
+            label_text += f':{weight_list[i][0]:.02f}g'
+
         text_color = color[i] if isinstance(color, list) else color
 
         font_size_mask = font_size if scales is None else font_size * scales[i]
@@ -150,7 +173,7 @@ def draw_labels(ax,
             pos[1],
             f'{label_text}',
             bbox={
-                'facecolor': 'black',
+                'facecolor': 'none',
                 'alpha': 0.8,
                 'pad': 0.7,
                 'edgecolor': 'none'
@@ -163,7 +186,7 @@ def draw_labels(ax,
     return ax
 
 
-def draw_masks(ax, img, masks, color=None, with_edge=True, alpha=0.8):
+def draw_masks(ax, img, masks, exclude_depth_err_index_list, color=None, with_edge=True, alpha=0.8):
     """Draw masks on the image and their edges on the axes.
 
     Args:
@@ -185,7 +208,13 @@ def draw_masks(ax, img, masks, color=None, with_edge=True, alpha=0.8):
         color = [tuple(c) for c in random_colors]
         color = np.array(color, dtype=np.uint8)
     polygons = []
-    for i, mask in enumerate(masks):
+
+    exclude_masks = []
+
+    for i in exclude_depth_err_index_list:
+        exclude_masks.append(masks[i])
+
+    for i, mask in enumerate(exclude_masks):
         if with_edge:
             contours, _ = bitmap_to_polygon(mask)
             polygons += [Polygon(c) for c in contours]
@@ -196,7 +225,10 @@ def draw_masks(ax, img, masks, color=None, with_edge=True, alpha=0.8):
         taken_colors.add(tuple(color_mask))
 
         mask = mask.astype(bool)
-        img[mask] = img[mask] * (1 - alpha) + color_mask * alpha
+        img[mask] = img[mask] * 0.9 + color_mask * 0.2 # 원본2
+        # img[mask] = img[mask] * 0.9 + np.random.randint(0, 256, (1, 3), dtype=np.uint8)*0.3 # 랜덤한 색상 부여
+        # img[mask] = img[mask] * 0.0 + heatmap * 1.0 # heatmap 적용
+
 
     p = PatchCollection(
         polygons, facecolor='none', edgecolors='w', linewidths=1, alpha=0.8)
@@ -206,6 +238,12 @@ def draw_masks(ax, img, masks, color=None, with_edge=True, alpha=0.8):
 
 
 def imshow_det_bboxes(img,
+                      area_list,
+                      weight_list,
+                      exclude_depth_err_index_list,
+                      days,
+                      average_area,
+                      average_weight,
                       bboxes=None,
                       labels=None,
                       segms=None,
@@ -301,7 +339,7 @@ def imshow_det_bboxes(img,
         num_bboxes = bboxes.shape[0]
         bbox_palette = palette_val(get_palette(bbox_color, max_label + 1))
         colors = [bbox_palette[label] for label in labels[:num_bboxes]]
-        draw_bboxes(ax, bboxes, colors, alpha=0.8, thickness=thickness)
+        draw_bboxes(ax, bboxes, exclude_depth_err_index_list, colors, alpha=0.8, thickness=thickness)
 
         horizontal_alignment = 'left'
         positions = bboxes[:, :2].astype(np.int32) + thickness
@@ -310,6 +348,8 @@ def imshow_det_bboxes(img,
         scores = bboxes[:, 4] if bboxes.shape[1] == 5 else None
         draw_labels(
             ax,
+            weight_list,
+            exclude_depth_err_index_list,
             labels[:num_bboxes],
             positions,
             scores=scores,
@@ -323,7 +363,7 @@ def imshow_det_bboxes(img,
         mask_palette = get_palette(mask_color, max_label + 1)
         colors = [mask_palette[label] for label in labels]
         colors = np.array(colors, dtype=np.uint8)
-        draw_masks(ax, img, segms, colors, with_edge=True)
+        draw_masks(ax, img, segms, exclude_depth_err_index_list, colors, with_edge=True)
 
         if num_bboxes < segms.shape[0]:
             segms = segms[num_bboxes:]
@@ -340,6 +380,8 @@ def imshow_det_bboxes(img,
             scales = _get_adaptive_scales(areas)
             draw_labels(
                 ax,
+                weight_list,
+                exclude_depth_err_index_list,
                 labels[num_bboxes:],
                 positions,
                 class_names=class_names,
@@ -359,6 +401,82 @@ def imshow_det_bboxes(img,
     img = rgb.astype('uint8')
     img = mmcv.rgb2bgr(img)
 
+# ------------------------------------------------------------------------------------------------------ # 
+    ## 알파블렌딩 이미지 합성 ##
+    # 이미지 불러오기
+    bg_img = Image.fromarray(img) # numpy array형태에서 Pillow image 형태로 변환
+    fg_img = Image.open("/scratch/dohyeon/mmdetection/resources/image.png")
+
+    # 파라미터 설정
+    alpha_value = 0.7
+    box_location1 = (0,0)
+    box_location2 = (15,500)
+    box_location3 = (15,575)
+    box_location4 = (15,650)
+    
+    # 이미지 합성(투명도 설정=alpha_value)
+    fg_img_trans = Image.new("RGBA",fg_img.size)
+    fg_img_trans = Image.blend(fg_img_trans,fg_img,alpha_value)
+    fg_img_trans1 = fg_img_trans.resize((190,45))
+    fg_img_trans2 = fg_img_trans.resize((250,70))
+    bg_img.paste(fg_img_trans1,box_location1,fg_img_trans1)
+    bg_img.paste(fg_img_trans2,box_location2,fg_img_trans2)
+    bg_img.paste(fg_img_trans2,box_location3,fg_img_trans2)
+    bg_img.paste(fg_img_trans2,box_location4,fg_img_trans2)
+
+    ## 블렌딩된 이미지 위에 텍스트 작성 ## 
+    #파라미터 설정
+    text_location1 = (20, 10)
+    text_location2 = (110, 10)
+    text_location3 = (25, 505)
+    text_location4 = (25, 580)
+    text_location5 = (25, 655)
+    text_location6 = (120, 525)
+    text_location7 = (117, 600)
+    text_location8 = (120, 675)
+    text_location9 = (215, 535)
+    text_location10 = (225, 610)
+    text_location11 = (235, 685)
+
+    # 텍스트 작성 
+    draw = ImageDraw.Draw(bg_img)
+    font_value1 = ImageFont.truetype("/scratch/dohyeon/mmdetection/resources/NanumGothic.ttc", 20)
+    font_value2 = ImageFont.truetype("/scratch/dohyeon/mmdetection/resources/NanumGothic.ttc", 13)
+    font_value3 = ImageFont.truetype("/scratch/dohyeon/mmdetection/resources/NanumGothic.ttc", 30)
+    font_value4 = ImageFont.truetype("/scratch/dohyeon/mmdetection/resources/NanumGothic.ttc", 20)
+    font_value5 = ImageFont.truetype("/scratch/dohyeon/mmdetection/resources/NanumGothic.ttc", 23)
+
+    input_text1 = "일령"
+    input_text2 = f"{days}일령"
+    input_text3 = "탐지된 개체수"
+    input_text4 = "평균면적"
+    input_text5 = "평균체중"
+    input_text6 = f"{len(area_list)}"
+    input_text7 = f"{average_area}"
+    input_text8 = f"{average_weight}"
+    input_text9 = "마리"
+    input_text10 = "㎠"
+    input_text11 = "g"
+
+    draw.text(text_location1, input_text1, font=font_value1, fill=(255,255,255)) # 일령
+    draw.text(text_location2, input_text2, font=font_value1, fill=(255,255,255)) # 일령 변수
+    draw.text(text_location3, input_text3, font=font_value2, fill=(255,255,255)) # 탐지된 개체 글자...
+    draw.text(text_location4, input_text4, font=font_value2, fill=(255,255,255)) # 평균면적 글자...
+    draw.text(text_location5, input_text5, font=font_value2, fill=(255,255,255)) # 평균체중 글자...
+    draw.text(text_location6, input_text6, font=font_value3, fill=(255,255,255)) # 개체수 변수
+    draw.text(text_location7, input_text7, font=font_value3, fill=(255,255,255)) # 면적 변수
+    draw.text(text_location8, input_text8, font=font_value3, fill=(255,255,255)) # g 변수
+    draw.text(text_location9, input_text9, font=font_value4, fill=(255,255,255)) # 마리
+    draw.text(text_location10, input_text10, font=font_value5, fill=(255,255,255)) # 면적
+    draw.text(text_location11, input_text11, font=font_value4, fill=(255,255,255)) # g
+    draw.line(((93,43),(189,43)), fill=(51,255,102)) # 형광색 밑줄
+    draw.polygon(((55,535),(55,555),(70,545)), fill=(51,255,102)) # 형광색 화살표
+    draw.polygon(((55,610),(55,630),(70,620)), fill=(51,255,102)) # 형광색 화살표
+    draw.polygon(((55,685),(55,705),(70,695)), fill=(51,255,102)) # 형광색 화살표
+
+    bg_img = np.array(bg_img) # mmcv에서 읽을 수 있는 형태로 변환
+# ------------------------------------------------------------------------------------------------------ #
+
     if show:
         # We do not use cv2 for display because in some cases, opencv will
         # conflict with Qt, it will output a warning: Current thread
@@ -370,7 +488,7 @@ def imshow_det_bboxes(img,
             plt.show(block=False)
             plt.pause(wait_time)
     if out_file is not None:
-        mmcv.imwrite(img, out_file)
+        mmcv.imwrite(bg_img, out_file)
 
     plt.close()
 
