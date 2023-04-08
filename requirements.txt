@@ -43,7 +43,6 @@ matplotlib==3.7.0
 matplotlib-inline==0.1.6
 mdurl==0.1.2
 mmcv-full==1.7.1
--e git+https://github.com/dohyeonYoon/BRODY@14a332a8ed83df3cbf9be0b106bc7e346d7a5cb0#egg=mmdet&subdirectory=src/mmdetection
 mmengine==0.6.0
 model-index==0.1.11
 natsort==8.3.0
@@ -90,8 +89,8 @@ tenacity==8.2.1
 termcolor==2.2.0
 terminaltables==3.1.10
 threadpoolctl==3.1.0
-torch==1.12.1+cu113
-torchvision==0.13.1+cu113
+torch==1.12.1+cu113 --extra-index-url https://download.pytorch.org/whl/cu113
+torchvision==0.13.1+cu113 --extra-index-url https://download.pytorch.org/whl/cu113
 tornado==6.2
 tqdm==4.64.1
 traitlets==5.9.0

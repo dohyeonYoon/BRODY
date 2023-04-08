@@ -23,10 +23,13 @@ Clone repo and install [requirements.txt](https://github.com/dohyeonYoon/BRODY/b
 (tested environment cuda 11.3, cudnn 8.2.1 for cuda 11.x)
 
 ```bash
-git clone https://github.com/dohyeonYoon/BRODY  # clone
-cd BRODY
+pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 --extra-index-url https://download.pytorch.org/whl/cu113
+pip install -U openmim
+mim install mmcv-full
+git clone https://github.com/dohyeonYoon/ai-broiler-weight  # clone
+cd ai-broiler-weight
 pip install -r requirements.txt  # dependency install
-cd BRODY/src/mmdetection
+cd ai-broiler-weight/src/mmdetection/source
 pip install -v -e . # mmdet install
 ```
 
@@ -42,7 +45,7 @@ python pyBRODY.py
 
 
 ### :file_folder: Pretrained Checkpoints
-Please place the downloaded **weights** and **dataset** directories in /BRODY/src/method_override/ directory respectively.
+Please place the downloaded **weights** and **dataset** directories in /BRODY/src/mmdetection/ directory respectively.
 
 [weight](https://drive.google.com/drive/folders/1ihPrR4gd-3p5L3Law2IJRkMRKVKh5a_5?usp=sharing)  # Mask-RCNN Weights
 

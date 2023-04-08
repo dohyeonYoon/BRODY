@@ -3,59 +3,58 @@ BRODY v0.1 - Main module
 
 '''
 
-import BRODY.Segmentation as Segmentation
-import BRODY.Conversion as Conversion
-import BRODY.Exclude_Outlying as eo
-import BRODY.Prediction as Prediction
-import BRODY.Visualization as Visualization
+import Segmentation as Seg
+import Conversion as Conv
+import Exclusion as Exclu
+import Prediction as Pred
+import Visualization as Visual
 
-from natsort import natsorted 
+from natsort import natsorted
 import os
 
-# 경로선언
-origin_img_path = '/scratch/dohyeon/BRODY/src/input/rgb' # 입력 RGB file이 저장된 경로
-origin_depthmap_path = '/scratch/dohyeon/BRODY/src/input/depth' # 입력 Depthmap file이 저장된 경로
-segmented_img_path = '/scratch/dohyeon/BRODY/src/output/save_point1/' # 출력결과를 저장할 경로
-arrival_date = [2022, 4, 26, 00]
-img_file_list = natsorted(os.listdir(origin_img_path))
-depthmap_file_list = natsorted(os.listdir(origin_depthmap_path))
+# Set broiler stocking date
+start_date = [2022, 6, 21, 00]
+
+# Set input and output path
+input_path = './input' 
+output_path = './output'
+input_file_list = natsorted(os.listdir(input_path))
+filename_list = natsorted(list(set(os.path.splitext(i)[0] for i in input_file_list)))
+
+# Config and checkpoint for MMDetection
+cfg_file = './mmdetection/config/mask_rcnn_r101_fpn_n_dataset_30.py'
+check_file = './mmdetection/weights/mask_rcnn_r101_fpn_epoch36_data30.pth'
+# cfg_file = './mmdetection/config/mask_rcnn_r101_fpn_n_dataset_87.py'
+# check_file = './mmdetection/weights/mask_rcnn_r101_fpn_epoch35_data87.pth'
+
+score_conf = 0.7
 
 def main():
-    for i in range(len(img_file_list)):
-        rgb_file_name = img_file_list[i]
-        img_name = origin_img_path + "/" + img_file_list[i]
-        depthmap_name = origin_depthmap_path + "/" + depthmap_file_list[i]
+    for filename in filename_list:
+        filename = input_path + '/' + filename
 
         # Segmentation
-        results, threshold_index = Segmentation.Segment_chicken(img_name)
-        contour_list, centroid_list, extream_point_list, mask_list, filtered_index = Segmentation.Get_contour(results, threshold_index)
-
-        # Conversion
-        z_c_list, array_3d, contour_list_3d = Conversion.Convert_2D_to_3D(img_name, depthmap_name, contour_list, centroid_list)
-        major_axis_list, minor_axis_list = Conversion.Calculate_major_minor_axis(extream_point_list, array_3d)
-
-        # eo
-        exclude_boundary_index_list = eo.Exclude_boundary_instance(img_name, extream_point_list, filtered_index)
-        exclude_depth_err_index_list = eo.Exclude_depth_error(z_c_list, exclude_boundary_index_list)
-        # eo.Find_straight_line(contour_list)
-
-        # Prediction  
-        area_list, average_area, perimeter_list, average_perimeter = Prediction.Calculate_2d_area(contour_list_3d, exclude_depth_err_index_list)
-        weight_list, average_weight = Prediction.Calculate_weight(area_list, perimeter_list, major_axis_list, minor_axis_list)
+        results, th_index = Seg.Segment_Broiler(filename, cfg_file, check_file, score_conf)
+        # mask_list = Seg.Get_mask(results, th_index)
+        contour_list, th_index = Seg.Get_Contour(results, th_index)
         
+        # # Conversion
+        depth_map, th_index = Conv.Generate_Depthmap_1(filename, contour_list, th_index)
+        # depth_map, th_index = Conv.Generate_Depthmap_2(filename, mask_list, contour_list, th_index)
+        array_3d = Conv.Convert_3D(filename, depth_map)
+
+        # Exclusion
+        th_index = Exclu.Delete_Exterior(filename, contour_list, th_index)
+        th_index = Exclu.Delete_Depth_Error(contour_list, array_3d, th_index)
+
+        # # Prediction
+        area_list = Pred.Calculate_2D_Area(contour_list, array_3d, th_index)
+        weight_list = Pred.Calculate_Weight(area_list)
+
         # Visualization
-        days = Visualization.Calculate_day(rgb_file_name, arrival_date)
-        Visualization.Visualize_weight(origin_img_path, 
-                segmented_img_path,
-                results,
-                weight_list, 
-                exclude_depth_err_index_list, 
-                average_weight, 
-                days,
-                average_area, 
-                area_list,
-                rgb_file_name)
-        Visualization.Save_to_csv(days, average_weight)
-            
+        Visual.Build_PNG(filename, start_date, results, area_list,
+                        weight_list, th_index, cfg_file, check_file)
+        Visual.Save_CSV(filename, start_date, area_list, weight_list)
+
 if __name__ == "__main__":
     main()
