@@ -164,7 +164,7 @@ def draw_labels(ax,
         label_text = f"{id[i]}" if class_names is not None else f'class {label}'
         if scores is not None:
             # label_text += f'|{scores[i]:.02f}'
-            label_text += f':{weight_list[i][0]:.02f}g'
+            label_text += f':{weight_list[i]:.02f}g'
 
         text_color = color[i] if isinstance(color, list) else color
 
@@ -233,9 +233,9 @@ def draw_masks(ax, img, masks, th_index, area_list, color=None, with_edge=True, 
         taken_colors.add(tuple(color_mask))
 
         mask = mask.astype(bool)
-        # img[mask] = img[mask] * 0.9 + color_mask * 0.2 # 원본2
+        img[mask] = img[mask] * 0.9 + color_mask * 0.2 # 원본2
         # img[mask] = img[mask] * 0.9 + np.random.randint(0, 256, (1, 3), dtype=np.uint8)*0.3 # 랜덤한 색상 부여
-        img[mask] = img[mask] * 0.0 + heatmap * 1.0 # heatmap 적용
+        # img[mask] = img[mask] * 0.0 + heatmap * 1.0 # heatmap 적용
 
 
     p = PatchCollection(

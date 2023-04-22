@@ -7,7 +7,7 @@ from shapely.geometry import Polygon
 import numpy as np 
 import joblib
 
-def Calculate_2D_Area(contour_list, array_3d, th_index):
+def Calculate_2D_Area(boundary_point_list, th_index):
     """3차원 contour점으로 이루어진 다각형의 면적 계산해주는 함수.
 
     Args:
@@ -18,22 +18,11 @@ def Calculate_2D_Area(contour_list, array_3d, th_index):
     Returns:
         area_list: 모든 개체의 면적이 저장된 리스트
     """
-    # Calculate 3d contour points.
-    contour_list_3d = []
-    for instance in contour_list:
-        instnace_points = []
-        # for point in instance[0]:
-        for point in instance:
-            y,x = point[0][1], point[0][0]
-            xyz = array_3d[y,x]
-            instnace_points.append(xyz)
-        contour_list_3d.append(instnace_points)
-    contour_list_3d = np.array(contour_list_3d, dtype= object)
 
     # Calculate area of all objects.
     area_list = []
     for i in th_index:
-        polygon = Polygon(np.array(contour_list_3d[i]))
+        polygon = Polygon(np.array(boundary_point_list[i]))
         polygon_area = round((polygon.area)/100,2)
         area_list.append(polygon_area)
 
@@ -50,13 +39,14 @@ def Calculate_Weight(area_list):
         weight_list: 모든 개체의 예측체중이 저장된 리스트
     """
     # Load linear regression model.
-    model = joblib.load('./regression/weights/Huber.pkl')
+    model = joblib.load('./regression/weights/optimal.pkl')
 
     # Calculate weight of all objects.
     weight_list = []
     for i in range(len(area_list)):
         area = area_list[i]
+
         weight = model.predict([[area]])
-        weight_list.append(weight)
+        weight_list.append(weight[0][0])
 
     return weight_list

@@ -56,7 +56,7 @@ def Get_mask(results, th_index):
         mask_array = np.where(results[1][0][i]==1, 255, results[1][0][i]).astype(np.uint8)
         pixels = cv2.findNonZero(mask_array)
         mask_list.append(pixels)
-
+        
     return mask_list
 
 

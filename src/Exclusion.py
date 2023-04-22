@@ -5,6 +5,50 @@ BRODY v0.1 - Exclusion module
 
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+import open3d as o3d
+
+def remove_smaller_clusters(point_cloud, eps, min_points):
+    # numpy array to open3d point cloud. 
+    pc = o3d.geometry.PointCloud()
+    pc.points = o3d.utility.Vector3dVector(point_cloud)
+
+    # Apply DBSCAN clustering.
+    labels = np.array(pc.cluster_dbscan(eps=eps, min_points=min_points, print_progress=False))
+
+    # Calculate point number of each cluster.
+    unique_labels, counts = np.unique(labels, return_counts=True)
+
+    # Remove cluster ecept largest cluster.
+    if len(unique_labels) > 1:
+        largest_cluster_label = unique_labels[np.argmax(counts)]
+
+        # Remove points ecept belong to largest cluster.
+        filtered_points = np.asarray(pc.points)[labels == largest_cluster_label]
+
+        # Make new point cloud with filtered_points.
+        filtered_point_cloud = o3d.geometry.PointCloud()
+        filtered_point_cloud.points = o3d.utility.Vector3dVector(filtered_points)
+        filtered_point_cloud = np.array(filtered_point_cloud.points)
+        return filtered_point_cloud
+    else:
+        return point_cloud
+
+def Remove_outlier(mask_list_3d):
+    # Remove outlier points.
+    filtered_mask_list_3d = []
+    for i in range(len(mask_list_3d)):
+        mask_point = o3d.geometry.PointCloud()
+        mask_point.points = o3d.utility.Vector3dVector(mask_list_3d[i])
+        mask_point.normals = o3d.utility.Vector3dVector(mask_list_3d[i])
+        filtered_mask_point,ind = mask_point.remove_statistical_outlier(nb_neighbors=60, std_ratio=0.7)
+        # filtered_mask_point = filtered_mask_point.voxel_down_sample(voxel_size=2)
+        filtered_mask_point = np.asarray(filtered_mask_point.points)
+        filtered_mask_point = remove_smaller_clusters(filtered_mask_point, 5, 10)
+        filtered_mask_list_3d.append(filtered_mask_point)
+
+    return filtered_mask_list_3d
+
 
 def Delete_Exterior(filename, contour_list, th_index):
     """ 이미지 경계에 위치하여 잘린 개체를 배제해주는 함수.  

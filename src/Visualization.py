@@ -10,6 +10,7 @@ from natsort import natsorted
 from mmdet.apis import init_detector
 import os 
 import cv2
+import numpy as np
 
 def Calculate_Day(filename, start_date):
     """촬영당시 육계의 일령 계산해주는 함수.
@@ -66,8 +67,8 @@ def Build_PNG(filename,
     days = Calculate_Day(filename, start_date)
 
     # Calculate average area, weight.
-    average_area = round(sum(area_list,0.0)/ len(area_list),2)
-    average_weight = round((sum(weight_list,0.0)/ len(weight_list))[0], 2)
+    average_area = np.round(sum(area_list,0.0)/ len(area_list),2)
+    average_weight = np.round((sum(weight_list,0.0)/ len(weight_list)), 2)
     print(f"평균 {average_weight}g입니다")
 
     # Set image file name.
@@ -125,22 +126,21 @@ def Save_CSV(filename, start_date, area_list, weight_list):
     avg_area = sum(area_list) / len(area_list)
     avg_weight = sum(weight_list) / len(weight_list) 
 
-    # # Save to csv file(days, area, weight).
-    # for i in range(len(area_list)):
-    #     rows = [days, area_list[i], weight_list[i][0]]
-    #     with open(f'./output/result.csv','a', newline='') as f_object:
-    #         # using csv.writer method from CSV package
-    #         writer_object = writer(f_object)
-    #         writer_object.writerow(rows)
-    #         f_object.close()
+    # Save to csv file(days, area, weight).
+    for i in range(len(area_list)):
+        rows = [days, area_list[i], weight_list[i]]
+        with open(f'./output/output.csv','a', newline='') as f_object:
+            # using csv.writer method from CSV package
+            writer_object = writer(f_object)
+            writer_object.writerow(rows)
+            f_object.close()
 
-        # Save to csv file(days, avg_area, avg_weight).
-
-    rows = [days, avg_area, avg_weight[0]]
-    with open(f'./output/result.csv','a', newline='') as f_object:
-        # using csv.writer method from CSV package
-        writer_object = writer(f_object)
-        writer_object.writerow(rows)
-        f_object.close()
+    # # Save to csv file(days, avg_area, avg_weight).
+    # rows = [days, avg_area, avg_weight]
+    # with open(f'./output/result.csv','a', newline='') as f_object:
+    #     # using csv.writer method from CSV package
+    #     writer_object = writer(f_object)
+    #     writer_object.writerow(rows)
+    #     f_object.close()
 
     return

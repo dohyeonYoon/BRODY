@@ -255,25 +255,15 @@ def Convert_2D_to_3D_surface(pgm_file_path, mask_list):
 
     return mask_list_3d, array_3d
 
-def Remove_outlier(mask_list_3d, img_name, real_mask_list):
-    img= cv2.imread(img_name, cv2.IMREAD_COLOR)
+def Remove_outlier(mask_list_3d):
 
-
-    for i in range(len(mask_list_3d)):
-        for j in real_mask_list[i]:
-
-            cv2.circle(img, (j[0][0],j[0][1]), 3, (0,0,255), -1)
-
-        cv2.imshow('mask_point', img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
-
+    # Before remove outlier points
+    for i in mask_list_3d:
         fig = plt.figure()
         ax = fig.gca(projection = '3d')
-        X = mask_list_3d[i][:,0]
-        Y = mask_list_3d[i][:,1]
-        Z = mask_list_3d[i][:,2]
+        X = i[:,0]
+        Y = i[:,1]
+        Z = i[:,2]
 
         x,y = np.meshgrid(X,Y)
         plane = 0.001*x + 0.001*y + 2400
@@ -287,6 +277,7 @@ def Remove_outlier(mask_list_3d, img_name, real_mask_list):
         plt.gca().invert_zaxis()
         plt.show()
 
+    # After remove outlier points
     filtered_mask_point_list = []
     for i in range(len(mask_list_3d)):
         mask_point = o3d.geometry.PointCloud()
