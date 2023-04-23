@@ -26,10 +26,10 @@ Clone repo and install [requirements.txt](https://github.com/dohyeonYoon/BRODY/b
 pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 --extra-index-url https://download.pytorch.org/whl/cu113
 pip install -U openmim
 mim install mmcv-full
-git clone https://github.com/dohyeonYoon/ai-broiler-weight  # clone
-cd ai-broiler-weight
+git clone https://github.com/dohyeonYoon/BRODY  # clone
+cd BRODY
 pip install -r requirements.txt  # dependency install
-cd ai-broiler-weight/src/mmdetection/source
+cd BRODY/src/mmdetection/source
 pip install -v -e . # mmdet install
 ```
 
