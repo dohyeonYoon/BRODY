@@ -56,6 +56,7 @@ python pyBRODY.py
 ## :file_folder: Pretrained Checkpoints
 Please place the downloaded **weights** and **dataset** directories in /BRODY/src/mmdetection/ directory respectively.
 (The download of the checkpoint file is temporarily unavailable)
+
 [weight](https://drive.google.com/drive/folders/1ihPrR4gd-3p5L3Law2IJRkMRKVKh5a_5?usp=sharing)  # Mask-RCNN Weights
 
 [dataset](https://drive.google.com/drive/folders/1t8jNL5OWvgEK40qNJGtwHOJ1UWu3ahVa?usp=sharing)  # Datasets
