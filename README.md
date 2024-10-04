@@ -9,7 +9,7 @@ This program receives RGB data and depth data as input and outputs the average w
 
 ## 🎯 Technical issues & Resolution process
 
-* [[BRODY] 3D Computer vision 기반 가축 체중측정 서비스](https://dohyeon.tistory.com/86)
+* [[BRODY] 3D Computer vision 기반 가축 체중측정 서비스](https://dohyeon.tistory.com/95)
 
 
 
