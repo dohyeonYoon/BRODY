@@ -1,7 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import warnings
 from pathlib import Path
-
 import mmcv
 import numpy as np
 import torch

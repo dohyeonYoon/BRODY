@@ -4,11 +4,12 @@ BRODY v0.1 - Segmentation module
 '''
 
 from mmdet.apis import init_detector, inference_detector
+from PIL import Image
 import cv2
 import numpy as np
 import warnings
 warnings.filterwarnings('ignore')
-import time
+
 
 def Segment_Broiler(filename, cfg_file, check_file, score_conf):
     """입력 이미지에 Instance Segmentation을 적용하여 육계영역만 분할해주는 함수.
@@ -37,8 +38,7 @@ def Segment_Broiler(filename, cfg_file, check_file, score_conf):
     th_index = np.where(results[0][0][:,4]> score_conf)
     th_index = th_index[0].tolist()
 
-    return results, th_index
-
+    return results, th_index, model
 
 def Get_mask(results, th_index):
     """모든 개체의 2D mask 픽셀좌표 받아오는 함수.
@@ -53,8 +53,7 @@ def Get_mask(results, th_index):
     # Save 2D mask pixel points for all objects
     mask_list = []
     for i in th_index:
-        mask_array = np.where(results[1][0][i]==1, 255, results[1][0][i]).astype(np.uint8)
-        pixels = cv2.findNonZero(mask_array)
+        pixels = cv2.findNonZero(results[1][0][i].astype(np.uint8))
         mask_list.append(pixels)
         
     return mask_list

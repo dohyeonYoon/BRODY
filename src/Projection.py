@@ -11,7 +11,6 @@ from sklearn.preprocessing import MinMaxScaler
 from shapely.geometry import Polygon, MultiPolygon, GeometryCollection
 import open3d as o3d
 
-
 def Find_Proj_Plane(filtered_mask_list_3d, array_3d):
     area_list = []
     polygon_type_list = []

@@ -272,7 +272,7 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
             loss=loss, log_vars=log_vars_, num_samples=len(data['img_metas']))
 
         return outputs
-
+    
     def show_result(self,
                     img,
                     result,

@@ -3,11 +3,8 @@ BRODY v0.1 - Visualization module
 
 '''
 
-# from mmdet.apis import init_detector
 from csv import writer
 from datetime import datetime
-from natsort import natsorted
-from mmdet.apis import init_detector
 import os 
 import cv2
 import numpy as np
@@ -44,8 +41,7 @@ def Build_PNG(filename,
               area_list,
               weight_list, 
               th_index,
-              cfg_file,
-              check_file):
+              model):
     """이미지 내의 각 개체마다 id, 체중 시각화해주는 함수.
 
     Args:
@@ -55,13 +51,10 @@ def Build_PNG(filename,
         area_list: 모든 개체의 면적이 저장된 리스트
         weight_list: 모든 개체의 예측체중이 저장된 리스트
         th_index: 깊이 이상치 개체를 제외한 나머지 개체 인덱스가 저장된 리스트
-        
+        model: Instance Segmentation model
     Returns:
         None
     """
-
-    # Make Detector model based on config and checkpoint.
-    model = init_detector(cfg_file, check_file, device='cuda:0')
     
     # Calculate days
     days = Calculate_Day(filename, start_date)
