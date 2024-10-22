@@ -2,6 +2,8 @@
 import sys
 
 import cv2
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import mmcv
 import numpy as np
@@ -412,7 +414,7 @@ def imshow_det_bboxes(img,
     ## 알파블렌딩 이미지 합성 ##
     # 이미지 불러오기
     bg_img = Image.fromarray(img) # numpy array형태에서 Pillow image 형태로 변환
-    fg_img = Image.open("/scratch/dohyeon/mmdetection/resources/image.png")
+    fg_img = Image.open("/home/dohyeon/Desktop/BRODY/src/mmdetection/resources/image.png")
 
     # 파라미터 설정
     alpha_value = 0.7
@@ -447,11 +449,11 @@ def imshow_det_bboxes(img,
 
     # 텍스트 작성 
     draw = ImageDraw.Draw(bg_img)
-    font_value1 = ImageFont.truetype("/scratch/dohyeon/mmdetection/resources/NanumGothic.ttc", 20)
-    font_value2 = ImageFont.truetype("/scratch/dohyeon/mmdetection/resources/NanumGothic.ttc", 13)
-    font_value3 = ImageFont.truetype("/scratch/dohyeon/mmdetection/resources/NanumGothic.ttc", 30)
-    font_value4 = ImageFont.truetype("/scratch/dohyeon/mmdetection/resources/NanumGothic.ttc", 20)
-    font_value5 = ImageFont.truetype("/scratch/dohyeon/mmdetection/resources/NanumGothic.ttc", 23)
+    font_value1 = ImageFont.truetype("/home/dohyeon/Desktop/BRODY/src/mmdetection/resources/NanumGothic.ttf", 20)
+    font_value2 = ImageFont.truetype("/home/dohyeon/Desktop/BRODY/src/mmdetection/resources/NanumGothic.ttf", 13)
+    font_value3 = ImageFont.truetype("/home/dohyeon/Desktop/BRODY/src/mmdetection/resources/NanumGothic.ttf", 30)
+    font_value4 = ImageFont.truetype("/home/dohyeon/Desktop/BRODY/src/mmdetection/resources/NanumGothic.ttf", 20)
+    font_value5 = ImageFont.truetype("/home/dohyeon/Desktop/BRODY/src/mmdetection/resources/NanumGothic.ttf", 23)
 
     input_text1 = "일령"
     input_text2 = f"{days}일령"

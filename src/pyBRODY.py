@@ -2,7 +2,6 @@
 BRODY v0.1 - Main module
 
 '''
-
 import Segmentation as Seg
 import Conversion as Conv
 import Exclusion as Exclu
@@ -22,20 +21,18 @@ output_path = './output'
 input_file_list = natsorted(os.listdir(input_path))
 filename_list = natsorted(list(set(os.path.splitext(i)[0] for i in input_file_list)))
 
-# Config and checkpoint for MMDetection
-# cfg_file = './mmdetection/config/mask_rcnn_r101_fpn_n_dataset_30.py'
-# check_file = './mmdetection/weights/mask_rcnn_r101_fpn_epoch36_data30.pth'
+# Config and checkpoint initialization for MMdetection
 cfg_file = './mmdetection/config/mask_rcnn_r101_fpn_n_dataset_87.py'
-check_file = './mmdetection/weights/mask_rcnn_r101_fpn_epoch35_data87.pth'
+check_file = './mmdetection/weights/mask_rcnn_r101_3x.pth'
 
 score_conf = 0.7
-
+@profile
 def main():
     for filename in filename_list:
         filename = input_path + '/' + filename
 
         # Segmentation
-        results, th_index = Seg.Segment_Broiler(filename, cfg_file, check_file, score_conf)
+        results, th_index, model = Seg.Segment_Broiler(filename, cfg_file, check_file, score_conf)
         mask_list = Seg.Get_mask(results, th_index)
         contour_list, th_index = Seg.Get_Contour(results, th_index)
         
@@ -49,15 +46,15 @@ def main():
         th_index = Exclu.Delete_Depth_Error(contour_list, array_3d, th_index)
 
         # Projection
-        area_list, polygon_type_list = Proj.Find_Proj_Plane(filtered_mask_list_3d, array_3d)
+        #area_list, polygon_type_list = Proj.Find_Proj_Plane(filtered_mask_list_3d, array_3d)
 
         # Prediction
-        # area_list = Pred.Calculate_2D_Area(boundary_point_list, th_index)
+        area_list, perimeter_list = Pred.Calculate_2D_Area(contour_list, array_3d, th_index)
         weight_list = Pred.Calculate_Weight(area_list)
 
         # Visualization
         Visual.Build_PNG(filename, start_date, results, area_list,
-                        weight_list, th_index, cfg_file, check_file)
+                        weight_list, th_index, model)
         Visual.Save_CSV(filename, start_date, area_list, weight_list)
 
 if __name__ == "__main__":
